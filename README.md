@@ -9,7 +9,8 @@ https://github.com/ex-zee-ex/lil_waaaves_sqrt-PI-
 https://www.patreon.com/andrei_jay
 
 
-Did not fuck with the code aside from removing syphon so everything is a little chunky. 
+Did not fuck with the code too much aside from removing syphon, so everything is a little chunky. 
+I did get basic presets implimented. it's in the Gui side if you want to take a look.
 Going to progressively move into the newer code.
 
 
