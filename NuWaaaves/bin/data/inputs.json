@@ -1,18 +1,1 @@
-{
-    "input_Channel": {
-        "channel_1": {
-            "bright": "1",
-            "bright_pow": "0",
-            "bright_powmap": "1",
-            "bright_wrapping": "0",
-            "channel_select": "0",
-            "hue": "1",
-            "hue_pow": "0",
-            "hue_powmap": "1",
-            "saturation": "1",
-            "saturation_pow": "0",
-            "saturation_powmap": "1",
-            "saturation_wrapping": "0"
-        }
-    }
-}
+{"input_Channel":{"channel_1":{"bright":"1","bright_pow":"0","bright_powmap":"1","bright_wrapping":"0","channel_select":"0","hue":"1","hue_pow":"0","hue_powmap":"1","saturation":"1","saturation_pow":"0","saturation_powmap":"1","saturation_wrapping":"0"}}}

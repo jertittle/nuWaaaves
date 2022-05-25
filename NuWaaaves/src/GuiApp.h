@@ -7,7 +7,7 @@
 #pragma once
 
 #include "ofMain.h"
-#include "ofxGui.h"
+#include "ofxGuiExtended.h"
 
 class GuiApp : public ofBaseApp{
     
@@ -18,111 +18,113 @@ public:
     void draw();
     void keyPressed(int);
     
+    ofxGui gui;
+    
     //each ofxPanel is a floating window
-    ofxPanel inputs;
-    ofxPanel buffers;
-    ofxPanel globals;
-    ofxPanel pixelations;
+    ofxGuiPanel *inputs;
+    ofxGuiPanel *buffers;
+    ofxGuiPanel *globals;
+    ofxGuiPanel *pixelations;
     
     //channel 1 settings
     //gui groups are colapseable folders
-    ofxGuiGroup channel1Group;
+    ofxGuiGroup *channel1Group;
     
-    ofxIntSlider channel1;
+    ofParameter<int> channel1;
     
-    ofxFloatSlider channel1hue;
-    ofxFloatSlider channel1saturation;
-    ofxFloatSlider channel1bright;
-    ofxToggle channel1satwrap;
-    ofxToggle channel1brightwrap;
-    ofxToggle ch1hue_powmaptoggle;
-    ofxToggle ch1sat_powmaptoggle;
-    ofxToggle ch1bright_powmaptoggle;
-    ofxFloatSlider channel1brightpowmap;
-    ofxFloatSlider channel1huepowmap;
-    ofxFloatSlider channel1saturationpowmap;
+    ofParameter<float> channel1hue;
+    ofParameter<float> channel1saturation;
+    ofParameter<float> channel1bright;
+    ofParameter<bool> channel1satwrap;
+    ofParameter<bool> channel1brightwrap;
+    ofParameter<bool> ch1hue_powmaptoggle;
+    ofParameter<bool> ch1sat_powmaptoggle;
+    ofParameter<bool> ch1bright_powmaptoggle;
+    ofParameter<float> channel1brightpowmap;
+    ofParameter<float> channel1huepowmap;
+    ofParameter<float> channel1saturationpowmap;
     
     
     
     //frame buffer 0 settings
-    ofxGuiGroup framebuffer0Group;
+    ofxGuiGroup *framebuffer0Group;
     
-    ofxIntSlider FB0mix;
-    ofxFloatSlider fb0blend;
-    ofxFloatSlider fb0lumakeyvalue;
-    ofxFloatSlider fb0lumakeythresh;
-    ofxIntSlider fb0delayamnt;
+    ofParameter<int> FB0mix;
+    ofParameter<float> fb0blend;
+    ofParameter<float> fb0lumakeyvalue;
+    ofParameter<float> fb0lumakeythresh;
+    ofParameter<int> fb0delayamnt;
     
-    ofxFloatSlider fb0_hue;
-    ofxFloatSlider fb0_saturation;
-    ofxFloatSlider fb0_bright;
-    ofxToggle fb0_hue_invert;
-    ofxToggle fb0_saturation_invert;
-    ofxToggle fb0_bright_invert;
-    ofxToggle fb0_vflip_switch;
-    ofxToggle fb0_hflip_switch;
-    ofxToggle fb0_toroid_switch;
-    ofxFloatSlider fb0_huex_mod;
-    ofxFloatSlider fb0_huex_offset;
-    ofxFloatSlider fb0_huex_lfo;
-    ofxFloatSlider fb0_x_displace;
-    ofxFloatSlider fb0_y_displace;
-    ofxFloatSlider fb0_z_displace;
-    ofxFloatSlider fb0_rotate;
+    ofParameter<float> fb0_hue;
+    ofParameter<float> fb0_saturation;
+    ofParameter<float> fb0_bright;
+    ofParameter<bool> fb0_hue_invert;
+    ofParameter<bool> fb0_saturation_invert;
+    ofParameter<bool> fb0_bright_invert;
+    ofParameter<bool> fb0_vflip_switch;
+    ofParameter<bool> fb0_hflip_switch;
+    ofParameter<bool> fb0_toroid_switch;
+    ofParameter<float> fb0_huex_mod;
+    ofParameter<float> fb0_huex_offset;
+    ofParameter<float> fb0_huex_lfo;
+    ofParameter<float> fb0_x_displace;
+    ofParameter<float> fb0_y_displace;
+    ofParameter<float> fb0_z_displace;
+    ofParameter<float> fb0_rotate;
     
     //framebuffer 1 settings
-    ofxGuiGroup framebuffer1Group;
-    ofxIntSlider FB1mix;
-    ofxFloatSlider fb1blend;
-    ofxFloatSlider fb1lumakeyvalue;
-    ofxFloatSlider fb1lumakeythresh;
+    ofxGuiGroup *framebuffer1Group;
+    ofParameter<int> FB1mix;
+    ofParameter<float> fb1blend;
+    ofParameter<float> fb1lumakeyvalue;
+    ofParameter<float> fb1lumakeythresh;
     
-    ofxIntSlider fb1delayamnt;
+    ofParameter<int> fb1delayamnt;
     
-    ofxFloatSlider fb1_hue;
-    ofxFloatSlider fb1_saturation;
-    ofxFloatSlider fb1_bright;
-    ofxToggle fb1_hue_invert;
-    ofxToggle fb1_saturation_invert;
-    ofxToggle fb1_bright_invert;
-    ofxToggle fb1_vflip_switch;
-    ofxToggle fb1_hflip_switch;
-    ofxToggle fb1_toroid_switch;
-    ofxFloatSlider fb1_huex_mod;
-    ofxFloatSlider fb1_huex_offset;
-    ofxFloatSlider fb1_huex_lfo;
-    ofxFloatSlider fb1_x_displace;
-    ofxFloatSlider fb1_y_displace;
-    ofxFloatSlider fb1_z_displace;
-    ofxFloatSlider fb1_rotate;
+    ofParameter<float> fb1_hue;
+    ofParameter<float> fb1_saturation;
+    ofParameter<float> fb1_bright;
+    ofParameter<bool> fb1_hue_invert;
+    ofParameter<bool> fb1_saturation_invert;
+    ofParameter<bool> fb1_bright_invert;
+    ofParameter<bool> fb1_vflip_switch;
+    ofParameter<bool> fb1_hflip_switch;
+    ofParameter<bool> fb1_toroid_switch;
+    ofParameter<float> fb1_huex_mod;
+    ofParameter<float> fb1_huex_offset;
+    ofParameter<float> fb1_huex_lfo;
+    ofParameter<float> fb1_x_displace;
+    ofParameter<float> fb1_y_displace;
+    ofParameter<float> fb1_z_displace;
+    ofParameter<float> fb1_rotate;
     
     //pixelation settings
-    ofxGuiGroup pixcamgroup;
-    ofxToggle cam1_pixel_switch;
-    ofxIntSlider cam1_pixel_scale;
-    ofxFloatSlider cam1_pixel_mix;
-    ofxFloatSlider cam1_pixel_brightscale;
+    ofxGuiGroup *pixcamgroup;
+    ofParameter<bool> cam1_pixel_switch;
+    ofParameter<int> cam1_pixel_scale;
+    ofParameter<float> cam1_pixel_mix;
+    ofParameter<float> cam1_pixel_brightscale;
     
-    ofxGuiGroup pixbuffergroup;
-    ofxToggle fb0_pixel_switch;
-    ofxIntSlider fb0_pixel_scale;
-    ofxFloatSlider fb0_pixel_mix;
-    ofxFloatSlider fb0_pixel_brightscale;
+    ofxGuiGroup *pixbuffergroup;
+    ofParameter<bool> fb0_pixel_switch;
+    ofParameter<int> fb0_pixel_scale;
+    ofParameter<float> fb0_pixel_mix;
+    ofParameter<float> fb0_pixel_brightscale;
     
-    ofxToggle fb1_pixel_switch;
-    ofxIntSlider fb1_pixel_scale;
-    ofxFloatSlider fb1_pixel_mix;
-    ofxFloatSlider fb1_pixel_brightscale;
+    ofParameter<bool> fb1_pixel_switch;
+    ofParameter<int> fb1_pixel_scale;
+    ofParameter<float> fb1_pixel_mix;
+    ofParameter<float> fb1_pixel_brightscale;
     
     //global settings
-    ofxGuiGroup globalgroup;
-    ofxFloatSlider blur_amount;
-    ofxFloatSlider sharpen_amount;
-    ofxFloatSlider y_skew;
-    ofxFloatSlider x_skew;
-    ofxToggle cam1_vflip_switch;
-    ofxToggle cam1_hflip_switch;
-    ofxFloatSlider cam1_scale;
+    ofxGuiGroup *globalgroup;
+    ofParameter<float> blur_amount;
+    ofParameter<float> sharpen_amount;
+    ofParameter<float> y_skew;
+    ofParameter<float> x_skew;
+    ofParameter<bool> cam1_vflip_switch;
+    ofParameter<bool> cam1_hflip_switch;
+    ofParameter<float> cam1_scale;
     
     
     
