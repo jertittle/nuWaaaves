@@ -1,0 +1,16 @@
+{
+    "pixelations": {
+        "buffer_pix": {
+            "bright_scale": "0",
+            "mix": "1",
+            "pixelate": "0",
+            "scale": "64"
+        },
+        "cam_pix": {
+            "bright_scale": "0",
+            "mix": "1",
+            "pixelate": "0",
+            "scale": "64"
+        }
+    }
+}
