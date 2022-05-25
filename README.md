@@ -1,5 +1,5 @@
 //*
-ayy y’all this is initial commit is a straight up port of Andrei's lil_waaaves but without MIDI or syphon. Also using the ofxGui addon. 
+ayy y’all this initial commit is a straight up port of Andrei's lil_waaaves but without MIDI or syphon. Also using the ofxGui addon. 
 I'm using this as a starting point of working on the gui and modulation side, because starting from VW 2.5 was too much of a head ache.
 
 
