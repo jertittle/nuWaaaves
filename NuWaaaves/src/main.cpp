@@ -17,9 +17,9 @@ int main(){
     //dualwindowsetup
     ofGLFWWindowSettings settings;
     
-   // settings.setSize(1024, 1024);
+    settings.setSize(1024, 1024);
     
-     settings.setSize(1280,720);
+   //  settings.setSize(1280,720);
 
     //settings.setSize(640, 480);
     settings.setPosition(ofVec2f(550,0));
