@@ -1,3 +1,0 @@
-ofxGuiExtended
-ofxMidi
-ofxNDI
