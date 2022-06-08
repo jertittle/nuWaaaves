@@ -1,5 +1,15 @@
 //*
 
+// ****  Update 6-8-22 ***
+
+oops wrong folder..
+
+mostly just a fix to get directories in order. 
+
+also added in the titler(tittler to u) from last year that I sorta forgot about.
+
+
+
 // ****  Update 6-6-22  ***
 
 My quest has gone full circle back to ImGui... 
