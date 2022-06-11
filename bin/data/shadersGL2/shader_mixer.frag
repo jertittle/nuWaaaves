@@ -12,6 +12,7 @@ uniform sampler2DRect fb1;
 
 //variables from gui
 uniform int channel1;
+uniform int channel2;
 
 
 //channel1 variablesfrom gui
@@ -19,24 +20,38 @@ uniform float channel1hue_x;
 uniform float channel1saturation_x;
 uniform float channel1bright_x;
 
-uniform float channel1hue_powmap;
-uniform float channel1sat_powmap;
-uniform float channel1bright_powmap;
-
-
 uniform int channel1satwrap;
 uniform int channel1brightwrap;
-
-uniform int ch1hue_powmaptoggle;
-uniform int ch1sat_powmaptoggle;
-uniform int ch1bright_powmaptoggle;
-
 
 uniform int ch1hue_inverttoggle;
 uniform int ch1sat_inverttoggle;
 uniform int ch1bright_inverttoggle;
 
+uniform float channel1hue_powmap;
+uniform float channel1sat_powmap;
+uniform float channel1bright_powmap;
 
+//channel2 variablesfrom gui
+//mix1 variables
+uniform int mix1;
+uniform float mix1blend1;
+uniform float mix1keybright;
+uniform float mix1keythresh;
+
+uniform float channel2hue_x;
+uniform float channel2saturation_x;
+uniform float channel2bright_x;
+
+uniform int channel2satwrap;
+uniform int channel2brightwrap;
+
+uniform int ch2hue_inverttoggle;
+uniform int ch2sat_inverttoggle;
+uniform int ch2bright_inverttoggle;
+
+uniform float channel2hue_powmap;
+uniform float channel2sat_powmap;
+uniform float channel2bright_powmap;
 
 
 uniform int cam1_hflip_switch;
@@ -419,6 +434,7 @@ void main()
     //set up dummy variables for each channel
     vec4 channel1_color=vec4(0.0, 0.0, 0.0, 0.0);
     
+    vec4 channel2_color=vec4(0.0, 0.0, 0.0, 0.0);
     
     vec4 ndi_color=texture2DRect(ndi,texCoordVarying);
     
@@ -472,42 +488,52 @@ void main()
     
     
     if(channel1==1){
-        
-        
         channel1_color=cam1color;
-        
-        
         
     }//endifch1_1
     
     if(channel1==2){
         channel1_color=ndi_color;
         
-        
-        
-        
     }//endifch1_2
     
     if(channel1==3){
         channel1_color=tittle_color;
         
-        
-        
-        
     }//endifch1_3
     
+    if(channel2==1){
+           channel2_color=cam1color;
+           
+       }//endifch2_1
+       
+       if(channel2==2){
+           channel2_color=ndi_color;
+           
+       }//endifch2_2
+       
+       if(channel2==3){
+           channel2_color=tittle_color;
+           
+       }//endifch2_3
     
-    // if(channel1==3){
-    //   channel1_color=syphon_color;
-    //}//endifch1_3
+   
 
     
     vec3 channel1color_hsb=rgb2hsv(vec3(channel1_color.r,channel1_color.g,channel1_color.b));
+    vec3 channel2color_hsb=rgb2hsv(vec3(channel2_color.r,channel2_color.g,channel2_color.b));
+
     vec3 ch1_hsbstrip=channel_hsboperations(channel1color_hsb, channel1hue_x, channel1saturation_x, channel1bright_x
                                             
                                             ,channel1hue_powmap,channel1sat_powmap,channel1bright_powmap
                                             ,channel1satwrap,channel1brightwrap,
                                             ch1hue_inverttoggle,ch1sat_inverttoggle,ch1bright_inverttoggle);
+    
+    vec3 ch2_hsbstrip=channel_hsboperations(channel2color_hsb, channel2hue_x, channel2saturation_x, channel2bright_x
+                                               
+                                               ,channel2hue_powmap,channel2sat_powmap,channel2bright_powmap
+                                               ,channel2satwrap,channel2brightwrap,
+                                               ch2hue_inverttoggle,ch2sat_inverttoggle,ch2bright_inverttoggle);
     
     //so will want to do something similar here where there is a dif set of coordinates
     //for each of the framebuffers then each one can be seperatly remapped
@@ -526,8 +552,10 @@ void main()
     
     
     vec2 fb0_coord=vec2(texCoordVarying.x-center.x,texCoordVarying.y-center.y);
-    fb0_coord=fb0_rescale.z*fb0_coord;
-    fb0_coord.xy=fb0_rescale.xy+fb0_coord.xy+center.xy;
+    fb0_coord=fb0_coord* fb0_rescale.z;
+    fb0_coord.xy=fb0_rescale.xy+fb0_coord.xy;
+    fb0_coord.x=fb0_coord.x+center.x;
+    fb0_coord.y=fb0_coord.y+center.y;
     
     //fb0_coord=1024-fb0_coord;
     fb0_coord=rotate(fb0_coord,fb0_rotate);
@@ -571,9 +599,10 @@ void main()
     //original flavor
     
     vec2 fb1_coord=vec2(texCoordVarying.x-center.x,texCoordVarying.y-center.y);
-    fb1_coord=fb1_rescale.z*fb1_coord;
-    fb1_coord.xy=fb1_rescale.xy+fb1_coord.xy+center.xy;
-    
+     fb1_coord=fb1_coord* fb1_rescale.z;
+     fb1_coord.xy=fb1_rescale.xy+fb1_coord.xy;
+     fb1_coord.x=fb1_coord.x+center.x;
+     fb1_coord.y=fb1_coord.y+center.y;
     
     
     fb1_coord=rotate(fb1_coord,fb1_rotate);
@@ -669,9 +698,11 @@ void main()
     
     
     vec3 channel1_rgb=vec3(hsv2rgb(ch1_hsbstrip));
-      
+    vec3 channel2_rgb=vec3(hsv2rgb(ch2_hsbstrip));
+    
       //switch on and off alpha in here... and test a lot more
       channel1_color=vec4(vec3(hsv2rgb(ch1_hsbstrip)),1.0);
+    channel2_color=vec4(vec3(hsv2rgb(ch2_hsbstrip)),1.0);
     fb0_color=vec4(vec3(hsv2rgb(fb0color_hsb)),1.0);
       fb1_color=vec4(vec3(hsv2rgb(fb1color_hsb)),1.0);
     
@@ -680,17 +711,25 @@ void main()
     
     
     
-    //vec4 mixout_color=vec4(0.0,0.0,0.0,0.0);
-    //
-    vec4 mixout_color=mix_rgb(channel1_color,fb0_color,fb0mix,fb0blend,fb0lumakeyvalue,fb0lumakeythresh,ch1_hsbstrip.z);
+    vec4 mixout_color=mix_rgb(channel1_color,channel2_color,mix1,mix1blend1,mix1keybright,mix1keythresh,ch1_hsbstrip.z);
+     
+     vec3 mixout_colorhsb=vec3(rgb2hsv(vec3(mixout_color.x,mixout_color.y,mixout_color.z)));
+
+     //fb0
+     mixout_color=mix_rgb(mixout_color,fb0_color,fb0mix,fb0blend,
+                          fb0lumakeyvalue,
+                          fb0lumakeythresh,
+                          mixout_colorhsb.z);
+     
+     mixout_colorhsb=vec3(rgb2hsv(vec3(mixout_color.x,mixout_color.y,mixout_color.z)));
     
+     //fb1
+     mixout_color=mix_rgb(mixout_color,fb1_color,fb1mix,fb1blend,
+                          fb1lumakeyvalue,
+                          fb1lumakeythresh,
+                          mixout_colorhsb.z);
     
-    
-    vec3 mixout_colorhsb=vec3(rgb2hsv(vec3(mixout_color.x,mixout_color.y,mixout_color.z)));
-    
-    mixout_color=mix_rgb(mixout_color,fb1_color,fb1mix,fb1blend,fb1lumakeyvalue,fb1lumakeythresh, mixout_colorhsb.z);
-    
-    
+     mixout_colorhsb=vec3(rgb2hsv(vec3(mixout_color.x,mixout_color.y,mixout_color.z)));
     
     
     

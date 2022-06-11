@@ -2,14 +2,16 @@
 //  GuiApp.h
 //  NuWaaaves
 //
-//  Created by Mac User on 5/24/22.
+//  Created by Jer on 5/24/22.
 //
 #pragma once
 
 #include "ofMain.h"
 #include "ofxImGui.h"
+#include "ofxMidi.h"
 
-class GuiApp : public ofBaseApp{
+
+class GuiApp : public ofBaseApp, public ofxMidiListener {
     
 public:
 public:
@@ -17,14 +19,30 @@ public:
     void update();
     void draw();
     void keyPressed(int);
+    void exit();
     
     ofxImGui::Gui gui;
     
+    //------------------- MIDI Biz
+    void newMidiMessage(ofxMidiMessage& eventArgs);
+    void getMidi();//midi bizzzzz
+    
+float addMidi(int,float);
+   
+    
+    float cc[128] = {0};//dummys
     
     
-    //channel 1 settings
+    ofxMidiIn midiIn;
+    std::vector<ofxMidiMessage> midiMessages;
+    std::size_t maxMessages = 10; //< max number of messages to keep track of. okay So I think this is redundant right now.
+    //it could be required for keeping sync I guess.
+    //it's filling an array of values but we only ever need the last value the controller sends.
+    //We can think of it like a "shift register" for polyphony.
+    //could use this vector to introduce particles to the system tho.
+    //could also introduce custom interpolation between values here.
     
-    
+    //channel 1 settings    
     int channel1_select = 1;
     
     float ch1_hue=1.0;
@@ -35,20 +53,31 @@ public:
     bool ch1_bright_alt_invert_toggle=0;
     bool ch1_saturation_wrap=0;
     bool ch1_bright_wrap=0;
-    bool ch1hue_powmaptoggle=0;
-    bool ch1sat_powmaptoggle=0;
-    bool ch1bright_powmaptoggle=0;
+   
     float ch1_hue_powmap=1.0;
     float ch1_saturation_powmap=1.0;
     float ch1_bright_powmap=1.0;
     
+    //channel 2 settings
+    int channel2_select = 1;
+    float ch2_mix=0;
+    float ch2_key_value=0;
+    float ch2_key_thresh=0;
+    float ch2_bright=1.0;
+    float ch2_hue=1.0;
+    float ch2_saturation=1.0;
+    bool ch2_hue_alt_invert_toggle=0;
+    bool ch2_saturation_alt_invert_toggle=0;
+    bool ch2_bright_alt_invert_toggle=0;
+    bool ch2_saturation_wrap=0;
+    bool ch2_bright_wrap=0;
+    float ch2_bright_powmap=1.0;
+    float ch2_hue_powmap=1.0;
+    float ch2_saturation_powmap=1.0;
     
     
     
     //frame buffer 0 settings
-    
-    
-    
     float fb0_mix=0;
     float fb0_key_value=0;
     float fb0_key_threshold=0;
@@ -154,6 +183,50 @@ public:
     float ndi_scale=0;//=0;
     
     float tittle_scale=1;
+    
+    //----------------- keyboard vars
+    bool enableKeys = 0;
+    float aa=0.0;
+    float ss=0.0;
+    float dd=0.0;
+    float ff=0.0;
+    float xw=1.01;
+    float yw=1.01;
+    float jj=1;
+    float kk=1;
+    float ll=.05;
+
+    float qq=0;
+    float ee=0;
+
+    float oo=1.0;
+    int ii=1;
+
+    float gg=0;
+    float hh=0;
+
+    float theta=0;
+
+    float movex=0;
+
+    float frequency=0;
+
+
+    float amp=0;
+
+
+
+
+
+
+    float scale1=1;
+    float scale2=1;
+
+    //vidmixer variables
+    float scale=.5;
+
+    float tt=0;
+
     
     //--------- TITTLER
        char str[64] = {0};//current max char length

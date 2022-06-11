@@ -1,7 +1,16 @@
+/*
+* Copyright (c) 2013 Dan Wilcox <danomatika@gmail.com>
+*
+* BSD Simplified License.
+* For information on usage and redistribution, and for a DISCLAIMER OF ALL
+* WARRANTIES, see the file, "LICENSE.txt," in this distribution.
+*
+* See https://github.com/danomatika/ofxMidi for documentation
+*
+*/
 #pragma once
 
 #include "ofMain.h"
-//#include "ofxMidi.h"
 #include "GuiApp.h"
 #include "ofxNDISender.h"
 #include "ofxNDISendStream.h"
@@ -70,6 +79,7 @@ public:
     float widthOffset(string strr);//auto center alignment
     ofFbo fbo_tittle;
     ofTrueTypeFont  franklinBook14, franklinBook14A;
+    float x_tittle, y_tittle;
     
     
 };

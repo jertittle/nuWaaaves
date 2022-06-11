@@ -2,25 +2,47 @@
 //  GuiApp.cpp
 //  NuWaaaves
 //
-//  Created by Mac User on 5/24/22.
+//  Created by Jer on 5/24/22.
 //
 
 #include "GuiApp.h"
+
 
 int fbob = 30;
 
 void GuiApp::setup(){
     
     ofBackground(0);
+    //ofSetLogLevel(OF_LOG_VERBOSE);
+    // print input ports to console
+    midiIn.listInPorts();
+    
+    // open port by number (you may need to change this)
+    midiIn.openPort(1);
+    //midiIn.openPort("IAC Pure Data In");    // by name
+    //midiIn.openVirtualPort("ofxMidiIn Input"); // open a virtual port
+    
+    // don't ignore sysex, timing, & active sense messages,
+    // these are ignored by default
+    midiIn.ignoreTypes(false, false, false);
+    
+    // add ofApp as a listener
+    midiIn.addListener(this);
+    
+    // print received messages to the console
+    // midiIn.setVerbose(true);
     
     gui.setup();
-       
+    
     textColor = ofColor(255,255,255,255);
+    
+    ofShowCursor();
     
 }
 //----------------------------------
 void GuiApp::update() {
     
+    //getMidi();
 }
 
 
@@ -39,6 +61,7 @@ void GuiApp::draw() {
     
     int gui_hscaler=170;
     int gui_vscaler=80;
+    
     ImGui::SetNextWindowPos(ImVec2(0*gui_hscaler, 0*gui_vscaler), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(gui_hscaler, gui_vscaler), ImGuiCond_FirstUseEver);
     
@@ -56,14 +79,14 @@ void GuiApp::draw() {
     {
         if (ImGui::CollapsingHeader("parameters"))
         {
-          //so for dropdown menues set up a char array of items like so
-                           const char* items[] = { "cam1", "ndi", "tittler" };
-                           static int item_current = 0;
-                           ImGui::Combo("combo", &item_current, items, IM_ARRAYSIZE(items));
-                           if(item_current==0){channel1_select=1;}
-                           if(item_current==1){channel1_select=2;}
-                           if(item_current==2){channel1_select=3;}
-                           
+            //so for dropdown menues set up a char array of items like so
+            const char* items[] = { "cam1", "ndi", "tittler" };
+            static int item_current = 0;
+            ImGui::Combo("combo", &item_current, items, IM_ARRAYSIZE(items));
+            if(item_current==0){channel1_select=1;}
+            if(item_current==1){channel1_select=2;}
+            if(item_current==2){channel1_select=3;}
+            
             
             
             
@@ -113,9 +136,48 @@ void GuiApp::draw() {
     }//endImguiWindow
     ofxImGui::EndWindow(mainSettings);
     
+    mainSettings.windowPos=ImVec2(ImVec2(0*gui_hscaler, 1*gui_vscaler));
+    
+    //channel 2 select folder
+    if (ofxImGui::BeginWindow("channel2", mainSettings, false))
+    {
+        if (ImGui::CollapsingHeader("parameters"))
+        {
+            //so for dropdown menues set up a char array of items like so
+            const char* items[] = { "cam1", "ndi", "tittler" };
+            static int item_current = 0;
+            ImGui::Combo("combo", &item_current, items, IM_ARRAYSIZE(items));
+            if(item_current==0){channel2_select=1;}
+            if(item_current==1){channel2_select=2;}
+            if(item_current==2){channel2_select=3;}
+            
+            
+            ImGui::SliderFloat("ch2_mix", &ch2_mix, -2.0f, 2.0f);
+            ImGui::SliderFloat("ch2_key_value", &ch2_key_value, .0f, 1.0f);
+            ImGui::SliderFloat("ch2_key_thresh", &ch2_key_thresh, .0f, 1.0f);
+            
+            ImGui::SliderFloat("hue", &ch2_hue, -5.0f, 5.0f);
+            ImGui::SliderFloat("saturation", &ch2_saturation, -5.0f, 5.0f);
+            ImGui::SliderFloat("bright", &ch2_bright, -5.0f, 5.0f);
+            
+            ImGui::Checkbox("hue_alternate_invert", &ch2_hue_alt_invert_toggle);
+            ImGui::Checkbox("saturation_alternate_invert", &ch2_saturation_alt_invert_toggle);
+            ImGui::Checkbox("bright_alternate_invert", &ch2_bright_alt_invert_toggle);
+            
+            ImGui::Checkbox("saturation_wrap", &ch2_saturation_wrap);
+            ImGui::Checkbox("bright_wrap", &ch2_bright_wrap);
+            
+            ImGui::SliderFloat("hue_powmap", &ch2_hue_powmap, -5.0f, 5.0f);
+            ImGui::SliderFloat("saturation_powmap", &ch2_saturation_powmap, -5.0f, 5.0f);
+            ImGui::SliderFloat("bright_powmap", &ch2_bright_powmap, -5.0f, 5.0f);
+            
+            
+        }
+    }//endImguiWindow
+    ofxImGui::EndWindow(mainSettings);
     
     
-    mainSettings.windowPos=ImVec2(ImVec2(1*gui_hscaler, 0*gui_vscaler));
+    mainSettings.windowPos=ImVec2(ImVec2(0*gui_hscaler, 2*gui_vscaler));
     
     
     //fb0 folder
@@ -136,6 +198,7 @@ void GuiApp::draw() {
                 static int item_current2 = 0;
                 ImGui::Combo("overflow select", &item_current2, items2, IM_ARRAYSIZE(items2));
                 fb0_toroid_switch=item_current2;
+                
                 
                 ImGui::Checkbox("fb0_h_mirror", &fb0_hflip_switch);
                 ImGui::Checkbox("fb0_v_mirror", &fb0_vflip_switch);
@@ -187,7 +250,7 @@ void GuiApp::draw() {
     
     
     
-    mainSettings.windowPos=ImVec2(ImVec2(1*gui_hscaler, 1*gui_vscaler));
+    mainSettings.windowPos=ImVec2(ImVec2(1*gui_hscaler, 2*gui_vscaler));
     
     
     //fb1 folder
@@ -268,9 +331,10 @@ void GuiApp::draw() {
         {
             
             
-            framebuffer_clear = ImGui::Button("Demo Window") ? 1 : 0;
+            framebuffer_clear = ImGui::Button("Clear buffer") ? 1 : 0;
             
-                
+            ImGui::Checkbox( "eanble keyboard controls", &enableKeys );
+            
             
             //blur
             ImGui::SliderFloat("blur amount", &blur_amount, -2.0f, 2.0f);
@@ -304,23 +368,173 @@ void GuiApp::draw() {
     
     ofxImGui::EndWindow(mainSettings);
     
-    mainSettings.windowPos=ImVec2(ImVec2(2*gui_hscaler, 3*gui_vscaler));
-           
-           //*************** TITTLER ******************
-                  if (ofxImGui::BeginWindow("Tittler", mainSettings, false))
-                  {
-              ImGui::InputText("text here", str, IM_ARRAYSIZE(str));//this call is why im using a char array. Documentation was wack?
-              ImGui::SliderFloat("scale", &textScale, .0f, 20.0f);
-              ImGui::Checkbox("anti-Alias", &setAa);
-                      ImGui::ColorEdit3("Text Color", (float*)&textColor);
-                  }//endImguiWindow
-                  ofxImGui::EndWindow(mainSettings);
+    mainSettings.windowPos=ImVec2(ImVec2(1*gui_hscaler, 3*gui_vscaler));
+    
+    //*************** TITTLER ******************
+    if (ofxImGui::BeginWindow("Tittler", mainSettings, false))
+    {
+        ImGui::InputText("text here", str, IM_ARRAYSIZE(str));//this call is why im using a char array. Documentation was wack?
+        ImGui::SliderFloat("scale", &textScale, .0f, 20.0f);
+        ImGui::Checkbox("anti-Alias", &setAa);
+        ImGui::ColorEdit3("Text Color", (float*)&textColor);
+    }//endImguiWindow
+    ofxImGui::EndWindow(mainSettings);
     
     gui.end();
 }
 
+void GuiApp::newMidiMessage(ofxMidiMessage& msg) {
+    
+    
+    // add the latest message to the message queue
+    midiMessages.push_back(msg);
+    
+    // remove any old messages if we have too many
+    while(midiMessages.size() > maxMessages) {
+        midiMessages.erase(midiMessages.begin());
+    }
+    
+    getMidi();
+    
+}
+
+void GuiApp::exit() {
+    // clean up
+    midiIn.closePort();
+    midiIn.removeListener(this);
+    
+}
+
 void GuiApp::keyPressed(int key) {
     
+    
+    
+    if(key=='3'){
+        aa=ss=dd=ff=gg=hh=0;
+    }
+    
+    if(enableKeys) {
+        //if(key=='q'){sw1==0;}
+        
+        if(key=='a'){aa+=0.0001;}
+        if(key=='z'){aa-=0.0001;}
+        if(key=='s'){ss+=0.0001;}
+        if(key=='x'){ss-=0.0001;}
+        
+        if(key=='d'){dd+=0.0001;}
+        if(key=='c'){dd-=0.0001;}
+        
+        if(key=='f'){ff+=0.0001;}
+        if(key=='v'){ff-=0.0001;}
+        
+        if(key=='g'){gg+=0.0001;}
+        if(key=='b'){gg-=0.0001;}
+        if(key=='h'){hh+=0.01;}
+        if(key=='n'){hh-=0.01;}
+        
+        
+        if(key=='j'){jj+=0.1;}
+        if(key=='m'){jj-=0.1;}
+        if(key=='k'){kk+=0.1;}
+        if(key==','){kk-=0.1;}
+        
+        
+        
+        if(key==';'){scale1+=0.01;}
+        if(key=='/'){scale1-=0.01;}
+        
+        if(key=='['){scale2+=0.01;}
+        if(key==']'){scale2-=0.01;}
+        
+        if(key=='q'){qq+=0.001;cout << "qq"<<qq<< endl;}
+        if(key=='w'){qq-=0.001;cout << "qq"<<qq<< endl;}
+        if(key=='e'){ee+=.1;cout << "ee"<<ee<< endl;}
+        if(key=='r'){ee-=.1;cout << "ee"<<ee<< endl;}
+        
+        
+        if(key=='u'){ii+=1;}
+        if(key=='i'){ii-=1;}
+        if(key=='o'){oo+=.1;}
+        if(key=='p'){oo-=.1;}
+        
+        if(key=='t'){tt+=.01;}
+        if(key=='y'){tt-=.01;}
+        
+        
+        if(key=='2'){amp+=.001;}
+        if(key=='3'){amp-=.001;}
+        
+    }
+    
+    
+}
+
+
+float GuiApp::addMidi(int m, float v) {
+    
+    return  cc[m] + v;
+}
+
+void GuiApp::getMidi(){
+    
+    for(unsigned int i = 0; i < midiMessages.size(); ++i) {
+        
+        ofxMidiMessage &message = midiMessages[i];
+        
+        // draw the last recieved message contents to the screen
+        //        stringstream text;
+        //        text << ofxMidiMessage::getStatusString(message.status);
+        //        while(text.str().length() < 16) { // pad status width
+        //            text << " ";
+        //        }
+        
+        if(message.status < MIDI_SYSEX) {
+            cout << "chan: " << message.channel<< endl;
+            if(message.status == MIDI_CONTROL_CHANGE) {
+                
+                switch(message.control) {
+                    case 16:
+                        //set knob 1
+                        cc[0] = (message.value)/127.0f;
+                        //cout <<"value: " << cc[0] << endl;
+                        break;
+                    case 17:
+                        //set knob 2
+                        cc[1] = (message.value)/127.0f;
+                        break;
+                    case 18:
+                        //set knob 3
+                        cc[2] = (message.value)/127.0f;
+                        break;
+                    case 19:
+                        //set knob 4
+                        cc[3] = (message.value)/127.0f;
+                        break;
+                    case 20:
+                        //set knob 5
+                        cc[4] = (message.value)/127.0f;
+                        break;
+                    case 21:
+                        //set knob 6
+                        cc[5] = (message.value)/127.0f;
+                        break;
+                    case 22:
+                        //set knob 7
+                        cc[6] = (message.value)/127.0f;
+                        break;
+                    case 23:
+                        //set knob 8
+                        cc[7] = (message.value)/127.0f;
+                        break;
+                        
+                        
+                }
+                
+            }
+        }
+        
+        
+    }
     
 }
 

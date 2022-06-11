@@ -1,57 +1,40 @@
+/*
+ 
+ }
+ 
+ too-Doo list:
+ 
+ 
+ }
+ 
+ 
+ */
+/*
+ # VIDEO_WAAAVES
+ a video mixer, framebuffer delay, and feedback resynthesis engine built in openFrameworks https://openframeworks.cc/
+ 
+ (QUICK ADVERTISEMENT FOR MYSELF https://andreijaycreativecoding.com/ this is my website, there is a pay pal button on here, if you have a fun time with the software i make and can afford to send me a donation it is super appreciated, the more donations i recieve means the more time i can spend working on crazy awesome open source software)
+ */
+
+
+/*
+ re the midi biz
+ * Copyright (c) 2013 Dan Wilcox <danomatika@gmail.com>
+ *
+ * BSD Simplified License.
+ * For information on usage and redistribution, and for a DISCLAIMER OF ALL
+ * WARRANTIES, see the file, "LICENSE.txt," in this distribution.
+ *
+ * See https://github.com/danomatika/ofxMidi for documentation
+ *
+ */
+
+/*thanks to ed tannenbaum for help in fixing up the framebuffer code!*/
 
 #include "ofApp.h"
 
 #include <iostream>
 
-
-float aa=0.0;
-float ss=0.0;
-float dd=0.0;
-float ff=0.0;
-float xw=1.01;
-float yw=1.01;
-float jj=1;
-float kk=1;
-float ll=.05;
-
-float qq=0;
-float ee=0;
-
-float oo=1.0;
-int ii=1;
-
-float gg=0;
-float hh=0;
-
-float theta=0;
-
-float movex=0;
-
-float frequency=0;
-
-
-float amp=0;
-
-
-
-
-
-
-float scale1=1;
-float scale2=1;
-
-//vidmixer variables
-float scale=.5;
-
-float tt=0;
-
-//framebuffer buffer variables  fbob-->framebufferobjectbuffer
-
-//int framecount=0;
-//const int fbob=15;
-
-
-//int compScale=2;
 
 
 int framedelayoffset=0;  // this is used as an index to the circular framebuffers eeettt
@@ -93,6 +76,7 @@ void ofApp::setup(){
     ofSetVerticalSync(true);
     ofBackground(0);
     //ofSetLogLevel(OF_LOG_VERBOSE);
+    ofHideCursor();
     
     
     
@@ -147,7 +131,9 @@ void ofApp::setup(){
     ofClear(0,0,0,255);
     fbo_blur.end();
     
-    
+    ndi_fbo.begin();
+    ofClear(0,0,0,255);
+    ndi_fbo.end();
     
     
     //allocate and clear the variable delay final draw buffers
@@ -187,6 +173,9 @@ void ofApp::setup(){
     franklinBook14A.load("frabk.ttf", 14, false);
     franklinBook14A.setLineHeight(18.0f);
     franklinBook14A.setLetterSpacing(1.037);
+    
+    x_tittle = ofGetWidth();
+    y_tittle = ofGetHeight();
 }
 
 //--------------------------------------------------------------
@@ -202,6 +191,7 @@ void ofApp::update(){
     tittle_update();
     
     if(gui->framebuffer_clear==true){
+        
         for(int i=0;i<fbob;i++){
             pastFrames[i].begin();
             
@@ -213,8 +203,14 @@ void ofApp::update(){
         fbo_draw.begin();
         ofClear(0,0,0,255);
         fbo_draw.end();
+        
+        ndi_fbo.begin();//this is kinda extra, just tired of drag artifacts when scaling.
+        ofClear(0,0,0,255);
+        ndi_fbo.end();
+        
         cout<<"lalalal"<<endl;
-        gui->framebuffer_clear = 0;
+        
+        gui->framebuffer_clear = 0;//reset momentary state
     }
     
 }
@@ -244,12 +240,6 @@ void ofApp::draw(){
     
     shader_mixer.setUniformTexture("ndi",ndi_fbo.getTexture(),1); shader_mixer.setUniformTexture("cam1",cam1.getTexture(),2);
     shader_mixer.setUniformTexture("tittle", fbo_tittle.getTexture(),3);//so this last number in the call here is unrelated to the location in the Gui drop menu//
-    shader_mixer.setUniform1f("tittle_scale", gui->tittle_scale);
-    
-    shader_mixer.setUniformTexture("fb0",pastFrames[(abs(framedelayoffset-fbob-gui->fb0_delay_amount)-1)%fbob].getTexture(),4);
-    shader_mixer.setUniformTexture("fb1",pastFrames[(abs(framedelayoffset-fbob-gui->fb1_delay_amount)-1)%fbob].getTexture(),5);
-    
-    
     
     
     //global things
@@ -259,37 +249,18 @@ void ofApp::draw(){
     shader_mixer.setUniform2f("cam1dimensions",ofVec2f(cam1.getWidth(),cam1.getHeight()));
     shader_mixer.setUniform2f("textdimensions",ofVec2f(fbo_tittle.getWidth(),fbo_tittle.getHeight()));
     
-    //send variables from gui
-    shader_mixer.setUniform1i("channel1", gui->channel1_select);
-    
-    shader_mixer.setUniform1f("fb0blend", gui->fb0_mix);
-    shader_mixer.setUniform1f("fb0lumakeyvalue", gui->fb0_key_value);
-    shader_mixer.setUniform1f("fb0lumakeythresh", gui->fb0_key_threshold);
-    
-    shader_mixer.setUniform1i("fb0_hflip_switch", gui->fb0_hflip_switch);
-    shader_mixer.setUniform1i("fb0_vflip_switch", gui->fb0_vflip_switch);
-    shader_mixer.setUniform1i("fb0_toroid_switch", gui->fb0_toroid_switch);
-    
-    shader_mixer.setUniform1f("fb1blend", gui->fb1_mix);
-    shader_mixer.setUniform1f("fb1lumakeyvalue", gui->fb1_key_value);
-    shader_mixer.setUniform1f("fb1lumakeythresh", gui->fb1_key_threshold);
-    
-    shader_mixer.setUniform1i("fb1_hflip_switch", gui->fb1_hflip_switch);
-    shader_mixer.setUniform1i("fb1_vflip_switch", gui->fb1_vflip_switch);
-    shader_mixer.setUniform1i("fb1_toroid_switch", gui->fb1_toroid_switch);
-    
     shader_mixer.setUniform1i("cam1_hflip_switch", gui->cam1_hflip_switch);
     shader_mixer.setUniform1i("cam1_vflip_switch", gui->cam1_vflip_switch);
     
     
-    shader_mixer.setUniform1f("cam1_scale", gui->cam1_scale);
-    
-    
-    
+    shader_mixer.setUniform1f("cam1_scale", gui->cam1_scale);//this is also buffer scale?
+    shader_mixer.setUniform1f("tittle_scale", gui->tittle_scale);
+    //send variables from gui
     
     //operations folder
     
     //ch1
+    shader_mixer.setUniform1i("channel1", gui->channel1_select);
     
     shader_mixer.setUniform1f("channel1hue_x", gui->ch1_hue);
     shader_mixer.setUniform1f("channel1saturation_x", gui->ch1_saturation);
@@ -302,21 +273,56 @@ void ofApp::draw(){
     shader_mixer.setUniform1i("channel1satwrap", gui->ch1_saturation_wrap);
     shader_mixer.setUniform1i("channel1brightwrap", gui->ch1_bright_wrap);
     
-    
-    shader_mixer.setUniform1i("ch1hue_powmaptoggle", gui->ch1hue_powmaptoggle);
-    shader_mixer.setUniform1i("ch1sat_powmaptoggle", gui->ch1sat_powmaptoggle);
-    shader_mixer.setUniform1i("ch1bright_powmaptoggle", gui->ch1bright_powmaptoggle);
-    
-    
-    
-    
     shader_mixer.setUniform1f("channel1hue_powmap", gui->ch1_hue_powmap);
     shader_mixer.setUniform1f("channel1sat_powmap", gui->ch1_saturation_powmap);
     shader_mixer.setUniform1f("channel1bright_powmap", gui->ch1_bright_powmap);
     
     
+    //ch2
+    shader_mixer.setUniform1i("channel2", gui->channel2_select);
+    shader_mixer.setUniform1i("mix1", 2);//gui->mix1);
+    
+    //mix1 controls from the gui
+    shader_mixer.setUniform1f("mix1blend1", gui->ch2_mix);
+    shader_mixer.setUniform1f("mix1keythresh", gui->ch2_key_thresh);
+    shader_mixer.setUniform1f("mix1keybright",gui->ch2_key_value);
+    
+    
+    shader_mixer.setUniform1f("channel2hue_x", gui->ch2_hue);
+    shader_mixer.setUniform1f("channel2saturation_x", gui->ch2_saturation);
+    shader_mixer.setUniform1f("channel2bright_x", gui->ch2_bright);
+    
+    shader_mixer.setUniform1i("ch2hue_inverttoggle", gui->ch2_hue_alt_invert_toggle);
+    shader_mixer.setUniform1i("ch2sat_inverttoggle", gui->ch2_saturation_alt_invert_toggle);
+    shader_mixer.setUniform1i("ch2bright_inverttoggle", gui->ch2_bright_alt_invert_toggle);
+    
+    shader_mixer.setUniform1i("channel2satwrap", gui->ch2_saturation_wrap);
+    shader_mixer.setUniform1i("channel2brightwrap", gui->ch2_bright_wrap);
+    
+    shader_mixer.setUniform1f("channel2hue_powmap", gui->ch2_hue_powmap);
+    shader_mixer.setUniform1f("channel2sat_powmap", gui->ch2_saturation_powmap);
+    shader_mixer.setUniform1f("channel2bright_powmap", gui->ch2_bright_powmap);
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     //fb0
+    
+    shader_mixer.setUniform1f("fb0blend", gui->addMidi(0, gui->fb0_mix));
+    shader_mixer.setUniform1f("fb0lumakeyvalue", gui->fb0_key_value);
+    shader_mixer.setUniform1f("fb0lumakeythresh", gui->fb0_key_threshold);
+    shader_mixer.setUniformTexture("fb0",pastFrames[(abs(framedelayoffset-fbob-gui->fb0_delay_amount)-1)%fbob].getTexture(),4);
+    shader_mixer.setUniform1i("fb0_hflip_switch", gui->fb0_hflip_switch);
+    shader_mixer.setUniform1i("fb0_vflip_switch", gui->fb0_vflip_switch);
+    shader_mixer.setUniform1i("fb0_toroid_switch", gui->fb0_toroid_switch);
     
     shader_mixer.setUniform3f("fb0_hsb_x",ofVec3f(gui->fb0_hue/10,gui->fb0_saturation/10,gui->fb0_bright/10));
     shader_mixer.setUniform3f("fb0_hue_x",ofVec3f(gui->fb0_huex_mod/10,gui->fb0_huex_offset/10,gui->fb0_huex_lfo/10));
@@ -326,6 +332,17 @@ void ofApp::draw(){
     shader_mixer.setUniform1f("fb0_rotate",(gui->fb0_rotate)/100);
     
     //fb1
+    
+    
+    shader_mixer.setUniform1f("fb1blend", gui->fb1_mix);
+    shader_mixer.setUniform1f("fb1lumakeyvalue", gui->fb1_key_value);
+    shader_mixer.setUniform1f("fb1lumakeythresh", gui->fb1_key_threshold);
+    shader_mixer.setUniformTexture("fb1",pastFrames[(abs(framedelayoffset-fbob-gui->fb1_delay_amount)-1)%fbob].getTexture(),5);
+    
+    shader_mixer.setUniform1i("fb1_hflip_switch", gui->fb1_hflip_switch);
+    shader_mixer.setUniform1i("fb1_vflip_switch", gui->fb1_vflip_switch);
+    shader_mixer.setUniform1i("fb1_toroid_switch", gui->fb1_toroid_switch);
+    
     shader_mixer.setUniform3f("fb1_hsb_x",ofVec3f(gui->fb1_hue/10,gui->fb1_saturation/10,gui->fb1_bright/10));
     shader_mixer.setUniform3f("fb1_hue_x",ofVec3f(gui->fb1_huex_mod/10,gui->fb1_huex_offset/10,gui->fb1_huex_lfo/10));
     shader_mixer.setUniform3f("fb1_rescale",ofVec3f(gui->fb1_x_displace,gui->fb1_y_displace,gui->fb1_z_displace/100));
@@ -454,11 +471,11 @@ void ofApp::draw(){
     ofTranslate(ofGetWidth()/2,ofGetHeight()/2,0);
     
     //  ofRotateZRad(.01);
-    ofTranslate(ff,gg,hh);
-    ofRotateYRad(ss+gui->y_skew);
-    ofRotateXRad(aa+gui->x_skew);
-    ofRotateZRad(dd);
-    ofRotateZRad(oo*TWO_PI/ii);
+    ofTranslate(gui->ff,gui->gg,gui->hh);
+    ofRotateYRad(gui->ss+gui->y_skew);
+    ofRotateXRad(gui->aa+gui->x_skew);
+    ofRotateZRad(gui->dd);
+    ofRotateZRad(gui->oo*TWO_PI/gui->ii);
     
     
     fbo_draw.draw(-ofGetWidth()/2,-ofGetHeight()/2);
@@ -493,7 +510,7 @@ void ofApp:: tittle_update() {
     
     ofPushMatrix();
     
-    ofTranslate(ofGetWidth()/3, ofGetHeight()*.7);//this could be set by sliders or look into 2D gui element. joystick?
+    ofTranslate(x_tittle, y_tittle);//this could be set by sliders or look into 2D gui element. joystick?
     
     ofScale(gui->textScale);//should I look into setHeight/Width
     ofSetColor(gui->textColor);
@@ -591,74 +608,6 @@ void ofApp:: NDI_sender_update(){
 void ofApp::keyPressed(int key){
     
     
-    
-    if(key=='3'){
-        aa=ss=dd=ff=gg=hh=0;
-    }
-    
-    if(key=='1'){
-        for(int i=0;i<fbob;i++){
-            pastFrames[i].begin();
-            
-            ofClear(0,0,0,255);
-            
-            pastFrames[i].end();
-        }
-        
-        fbo_draw.begin();
-        ofClear(0,0,0,255);
-        fbo_draw.end();
-    }
-    //if(key=='q'){sw1==0;}
-    
-    if(key=='a'){aa+=0.0001;}
-    if(key=='z'){aa-=0.0001;}
-    if(key=='s'){ss+=0.0001;}
-    if(key=='x'){ss-=0.0001;}
-    
-    if(key=='d'){dd+=0.0001;}
-    if(key=='c'){dd-=0.0001;}
-    
-    if(key=='f'){ff+=0.0001;}
-    if(key=='v'){ff-=0.0001;}
-    
-    if(key=='g'){gg+=0.0001;}
-    if(key=='b'){gg-=0.0001;}
-    if(key=='h'){hh+=0.01;}
-    if(key=='n'){hh-=0.01;}
-    
-    
-    if(key=='j'){jj+=0.1;}
-    if(key=='m'){jj-=0.1;}
-    if(key=='k'){kk+=0.1;}
-    if(key==','){kk-=0.1;}
-    
-    
-    
-    if(key==';'){scale1+=0.01;}
-    if(key=='/'){scale1-=0.01;}
-    
-    if(key=='['){scale2+=0.01;}
-    if(key==']'){scale2-=0.01;}
-    
-    if(key=='q'){qq+=0.001;cout << "qq"<<qq<< endl;}
-    if(key=='w'){qq-=0.001;cout << "qq"<<qq<< endl;}
-    if(key=='e'){ee+=.1;cout << "ee"<<ee<< endl;}
-    if(key=='r'){ee-=.1;cout << "ee"<<ee<< endl;}
-    
-    
-    if(key=='u'){ii+=1;}
-    if(key=='i'){ii-=1;}
-    if(key=='o'){oo+=.1;}
-    if(key=='p'){oo-=.1;}
-    
-    if(key=='t'){tt+=.01;}
-    if(key=='y'){tt-=.01;}
-    
-    
-    if(key=='2'){amp+=.001;}
-    if(key=='3'){amp-=.001;}
-    
 }
 //--------------------------------------------------------------
 void ofApp::exit() {
@@ -681,7 +630,8 @@ void ofApp::mouseDragged(int x, int y, int button){
 
 //--------------------------------------------------------------
 void ofApp::mousePressed(int x, int y, int button){
-    
+    x_tittle = x;
+    y_tittle = y;
 }
 
 //--------------------------------------------------------------

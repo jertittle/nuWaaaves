@@ -1,8 +1,13 @@
+
+ 
 #include "ofMain.h"
 #include "ofApp.h"
 
 #include "GuiApp.h"
 #include "ofAppGLFWWindow.h"
+
+
+
 int main(){
     
     //--------------oldsinglewindowsetup
@@ -27,7 +32,7 @@ int main(){
     //settings.decorated = false;
     shared_ptr<ofAppBaseWindow> mainWindow = ofCreateWindow(settings);
     
-    settings.setSize(550, 960);
+    settings.setSize(415, 960);
     settings.setPosition(ofVec2f(0,0));
     settings.resizable = true;
    // settings.doubleBuffering=false;
