@@ -53,6 +53,10 @@ void GuiApp::draw() {
     
     auto mainSettings = ofxImGui::Settings();
     
+    //this is used to pass parameters to the tabing object
+    //this is default, tabs are open one at a time
+    ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
+    
     //list variables for ranges...not this time but probably at some point in the future
     //should normalize everything in the gui to -1 1 and then add coeffecients in ofApp.cpp
     float x_y_d=40;
@@ -69,8 +73,25 @@ void GuiApp::draw() {
     gui.begin();
     //ofxGuiFloatSlider
     
-    
+    //-------------------------------------- debugmenu
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+    
+    ImGui::Checkbox( "eanble keyboard controls", &enableKeys );
+    
+    ImGui::Checkbox( "hide mouse", &hide_mouse );
+    
+    if (ImGui::Button("CUSTOM THEME"))
+    {
+        gui.setTheme(new MyTheme());
+        
+    }ImGui::SameLine();
+    
+    if (ImGui::Button("DEFAULT THEME"))
+    {
+        gui.setTheme(new ofxImGui::DefaultTheme());
+        
+    }
+    //---------------------------------------------
     
     mainSettings.windowPos=ImVec2(ImVec2(0*gui_hscaler, 0*gui_vscaler));
     
@@ -80,55 +101,95 @@ void GuiApp::draw() {
         if (ImGui::CollapsingHeader("parameters"))
         {
             //so for dropdown menues set up a char array of items like so
-            const char* items[] = { "cam1", "ndi", "tittler" };
+            const char* items[] = { "cam1", "cam2", "ndi", "tittler" };
             static int item_current = 0;
             ImGui::Combo("combo", &item_current, items, IM_ARRAYSIZE(items));
-            if(item_current==0){channel1_select=1;}
-            if(item_current==1){channel1_select=2;}
-            if(item_current==2){channel1_select=3;}
+            channel1_select=1 + item_current;
+            
+            
+            //begin slider + toggles tabs
+            
+            //the string variable here needs to be unique to each tab group
+            //the states of which tab is/was open last needs to be stored?
+            if (ImGui::BeginTabBar("ch1_parameter_tabs", tab_bar_flags))
+            {
+                if (ImGui::BeginTabItem("Sliders"))
+                {
+                    ImGui::Text("This is the Silders tab!\nblah blah blah blah blah");
+                    ImGui::SliderFloat("hue", &ch1_hue, -5.0f, 5.0f);
+                    ImGui::SliderFloat("saturation", &ch1_saturation, -5.0f, 5.0f);
+                    ImGui::SliderFloat("bright", &ch1_bright, -5.0f, 5.0f);
+                    ImGui::SliderFloat("hue_powmap", &ch1_hue_powmap, -5.0f, 5.0f);
+                    ImGui::SliderFloat("saturation_powmap", &ch1_saturation_powmap, -5.0f, 5.0f);
+                    ImGui::SliderFloat("bright_powmap", &ch1_bright_powmap, -5.0f, 5.0f);
+                    ImGui::EndTabItem();
+                }
+                
+                if (ImGui::BeginTabItem("Toggles"))
+                {
+                    ImGui::Text("This is the Toggles tab!\nblah blah blah blah blah");
+                    ImGui::Checkbox("hue_alternate_invert", &ch1_hue_alt_invert_toggle);
+                    ImGui::Checkbox("saturation_alternate_invert", &ch1_saturation_alt_invert_toggle);
+                    ImGui::Checkbox("bright_alternate_invert", &ch1_bright_alt_invert_toggle);
+                    ImGui::Checkbox("saturation_wrap", &ch1_saturation_wrap);
+                    ImGui::Checkbox("bright_wrap", &ch1_bright_wrap);
+                    ImGui::EndTabItem();
+                }
+                
+                
+                ImGui::EndTabBar();
+            }//end sliders+toggles tabs
             
             
             
             
-            ImGui::SliderFloat("hue", &ch1_hue, -5.0f, 5.0f);
-            ImGui::SliderFloat("saturation", &ch1_saturation, -5.0f, 5.0f);
-            ImGui::SliderFloat("bright", &ch1_bright, -5.0f, 5.0f);
             
-            ImGui::Checkbox("hue_alternate_invert", &ch1_hue_alt_invert_toggle);
-            ImGui::Checkbox("saturation_alternate_invert", &ch1_saturation_alt_invert_toggle);
-            ImGui::Checkbox("bright_alternate_invert", &ch1_bright_alt_invert_toggle);
             
-            ImGui::Checkbox("saturation_wrap", &ch1_saturation_wrap);
-            ImGui::Checkbox("bright_wrap", &ch1_bright_wrap);
-            
-            ImGui::SliderFloat("hue_powmap", &ch1_hue_powmap, -5.0f, 5.0f);
-            ImGui::SliderFloat("saturation_powmap", &ch1_saturation_powmap, -5.0f, 5.0f);
-            ImGui::SliderFloat("bright_powmap", &ch1_bright_powmap, -5.0f, 5.0f);
             
             
         }
         
         ImGui::Separator();
         
-        if (ImGui::CollapsingHeader("pixelations")){
-            if (ImGui::CollapsingHeader("cam pixelations")){
-                ImGui::Checkbox("pixelate", &cam1_pixel_switch);
-                ImGui::SliderInt("pixel scale_x", &cam1_pixel_scale_x, .0f, 256.0f);
-                ImGui::SliderInt("pixel scale_y", &cam1_pixel_scale_y, .0f, 256.0f);
-                ImGui::SliderFloat("pixel mix", &cam1_pixel_mix, -2.0f, 2.0f);
-                ImGui::SliderFloat("bright_scale", &cam1_pixel_brightscale, -2.0f, 2.0f);
+        if (ImGui::CollapsingHeader("Input pixelations")){
+            
+            
+            
+            if (ImGui::BeginTabBar("ch1_pixel_tabs", tab_bar_flags))
+            {
+                if (ImGui::BeginTabItem("cam1"))
+                {
+                    ImGui::Checkbox("pixelate", &cam1_pixel_switch);
+                    ImGui::SliderInt("pixel scale_x", &cam1_pixel_scale_x, .0f, 256.0f);
+                    ImGui::SliderInt("pixel scale_y", &cam1_pixel_scale_y, .0f, 256.0f);
+                    ImGui::SliderFloat("pixel mix", &cam1_pixel_mix, -2.0f, 2.0f);
+                    ImGui::SliderFloat("bright_scale", &cam1_pixel_brightscale, -2.0f, 2.0f);
+                    ImGui::EndTabItem();
+                }
+                if (ImGui::BeginTabItem("cam2"))
+                {
+                    ImGui::Checkbox("pixelate", &cam2_pixel_switch);
+                    ImGui::SliderInt("pixel scale_x", &cam2_pixel_scale_x, .0f, 256.0f);
+                    ImGui::SliderInt("pixel scale_y", &cam2_pixel_scale_y, .0f, 256.0f);
+                    ImGui::SliderFloat("pixel mix", &cam2_pixel_mix, -2.0f, 2.0f);
+                    ImGui::SliderFloat("bright_scale", &cam2_pixel_brightscale, -2.0f, 2.0f);
+                    ImGui::EndTabItem();
+                }
+                if (ImGui::BeginTabItem("NDI"))
+                {
+                    ImGui::Checkbox("pixelate", &ndi_pixel_switch);
+                    ImGui::SliderInt("pixel scale_x", &ndi_pixel_scale_x, .0f, 256.0f);
+                    ImGui::SliderInt("pixel scale_y", &ndi_pixel_scale_y, .0f, 256.0f);
+                    ImGui::SliderFloat("pixel mix", &ndi_pixel_mix, -2.0f, 2.0f);
+                    ImGui::SliderFloat("bright_scale", &ndi_pixel_brightscale, -2.0f, 2.0f);
+                    ImGui::EndTabItem();
+                }
+                
+                ImGui::EndTabBar();
             }
             
-            if (ImGui::CollapsingHeader("NDI pixelations")){
-                
-                
-                ImGui::Checkbox("pixelate", &ndi_pixel_switch);
-                ImGui::SliderInt("pixel scale_x", &ndi_pixel_scale_x, .0f, 256.0f);
-                ImGui::SliderInt("pixel scale_y", &ndi_pixel_scale_y, .0f, 256.0f);
-                ImGui::SliderFloat("pixel mix", &ndi_pixel_mix, -2.0f, 2.0f);
-                ImGui::SliderFloat("bright_scale", &ndi_pixel_brightscale, -2.0f, 2.0f);
-                
-            }
+            
+            
         }
         
         
@@ -144,12 +205,11 @@ void GuiApp::draw() {
         if (ImGui::CollapsingHeader("parameters"))
         {
             //so for dropdown menues set up a char array of items like so
-            const char* items[] = { "cam1", "ndi", "tittler" };
+            const char* items[] = { "cam1", "cam2", "ndi", "tittler" };
             static int item_current = 0;
             ImGui::Combo("combo", &item_current, items, IM_ARRAYSIZE(items));
-            if(item_current==0){channel2_select=1;}
-            if(item_current==1){channel2_select=2;}
-            if(item_current==2){channel2_select=3;}
+            channel2_select= 1+ item_current;
+            
             
             
             ImGui::SliderFloat("ch2_mix", &ch2_mix, -2.0f, 2.0f);
@@ -186,10 +246,35 @@ void GuiApp::draw() {
         if (ImGui::CollapsingHeader("parameters")){
             //-------------------------------------------------------------------------------
             if (ImGui::CollapsingHeader("mix and delay amount")){
-                ImGui::SliderFloat("fb0_mix", &fb0_mix, -2.0f, 2.0f);
-                ImGui::SliderFloat("fb0_key_value", &fb0_key_value, .0f, 1.0f);
-                ImGui::SliderFloat("fb0_key_threshold", &fb0_key_threshold, .0f, 1.0f);
-                ImGui::SliderInt("fb0_delay_amount", &fb0_delay_amount, 0, fbob-1);
+                
+                if (ImGui::BeginTabBar("fb0_mix_tab", tab_bar_flags))
+                {
+                    if (ImGui::BeginTabItem("main"))
+                    {
+                        ImGui::SliderFloat("fb0_mix", &fb0_mix, -2.0f, 2.0f);
+                        ImGui::SliderFloat("fb0_key_value", &fb0_key_value, .0f, 1.0f);
+                        ImGui::SliderFloat("fb0_key_threshold", &fb0_key_threshold, .0f, 1.0f);
+                       
+                        ImGui::EndTabItem();
+                    }
+                    if (ImGui::BeginTabItem("texmod"))
+                    {
+                        // ImGui::Checkbox("tex_mod", &fb0_tex_mod);
+                        const char* items[] = { "channel 1","channel 2" };
+                        static int item_current = 0;
+                        ImGui::Combo("texmod select", &item_current, items, IM_ARRAYSIZE(items));
+                        if(item_current==0){fb0_texmod_select=1;}
+                        if(item_current==1){fb0_texmod_select=2;}
+                        
+                        ImGui::SliderFloat("texmod fb0_mix", &tex_fb0_mix, -2.0f, 2.0f);
+                        ImGui::SliderFloat("texmod fb0_key_value", &tex_fb0_key_value, .0f, 1.0f);
+                        ImGui::SliderFloat("texmod fb0_key_threshold", &tex_fb0_key_threshold, .0f, 1.0f);
+                        ImGui::EndTabItem();
+                    }
+                    
+                    ImGui::EndTabBar();
+                }
+                 ImGui::SliderInt("fb0_delay_amount", &fb0_delay_amount, 0, fbob-1);
             }
             //-------------------------------------------------------------------------------
             if (ImGui::CollapsingHeader("misc switches")){
@@ -210,12 +295,45 @@ void GuiApp::draw() {
             //-------------------------------------------------------------------------------
             if (ImGui::CollapsingHeader("color space")){
                 
-                ImGui::SliderFloat("fb0_hue", &fb0_hue, 8.0f, 12.0f);
-                ImGui::SliderFloat("fb0_saturation", &fb0_saturation, 8.0f, 12.0f);
-                ImGui::SliderFloat("fb0_bright", &fb0_bright, 1.0f, 12.0f);
-                ImGui::SliderFloat("fb0_huex_mod", &fb0_huex_mod, 0.0f, 10.0f);
-                ImGui::SliderFloat("fb0_huex_offset", &fb0_huex_offset, -20.0f, 20.0f);
-                ImGui::SliderFloat("fb0_huex_lfo", &fb0_huex_lfo, -20.0f, 20.0f);
+                if(ImGui::TreeNode("color1")) {//this label has creates a unique flag state for trees. meaning if a node shares a string it shares a state
+                    
+                    if (ImGui::BeginTabBar("fb0_color1", tab_bar_flags))
+                    {
+                        if (ImGui::BeginTabItem("color1"))
+                        {
+                            ImGui::SliderFloat("fb0_hue", &fb0_hue, 8.0f, 12.0f);
+                            ImGui::SliderFloat("fb0_saturation", &fb0_saturation, 8.0f, 12.0f);
+                            ImGui::SliderFloat("fb0_bright", &fb0_bright, 1.0f, 12.0f);
+                            ImGui::SliderFloat("fb0_huex_mod", &fb0_huex_mod, 0.0f, 10.0f);
+                            ImGui::SliderFloat("fb0_huex_offset", &fb0_huex_offset, -20.0f, 20.0f);
+                            ImGui::SliderFloat("fb0_huex_lfo", &fb0_huex_lfo, -20.0f, 20.0f);
+                            ImGui::EndTabItem();
+                        }
+                        
+                        if (ImGui::BeginTabItem("color1_texMod"))
+                        {
+                            
+                            ImGui::SliderFloat("texmod fb0_hue", &tex_fb0_hue, -.25f, .25f);
+                            ImGui::SliderFloat("texmod fb0_saturation", &tex_fb0_saturation, -.25f, .25f);
+                            ImGui::SliderFloat("texmod fb0_bright", &tex_fb0_bright, -.25f, .25f);
+                            ImGui::SliderFloat("texmod fb0_huex_mod", &tex_fb0_huex_mod, -1.0f, 0.0f);
+                            ImGui::SliderFloat("texmod fb0_huex_offset", &tex_fb0_huex_offset, -2.0f, 2.0f);
+                            ImGui::SliderFloat("texmod fb0_huex_lfo", &tex_fb0_huex_lfo, -2.0f, 2.0f);
+                            ImGui::EndTabItem();
+                        }
+                        ImGui::EndTabBar();
+                    }
+                    ImGui::TreePop();
+                }
+                
+                if(ImGui::TreeNode("color2")) {
+                    ImGui::Text("this is color2 tree WEeeeeeeeeeeee");
+                    ImGui::Text("this is color2 tree WEeeeeeeeeeeee");
+                    ImGui::Text("this is color2 tree WEeeeeeeeeeeee");
+                    ImGui::Text("this is color2 tree WEeeeeeeeeeeee");
+                    ImGui::Text("this is color2 tree WEeeeeeeeeeeee");
+                    ImGui::TreePop();
+                }
                 
             }
             //-------------------------------------------------------------------------------
@@ -228,12 +346,44 @@ void GuiApp::draw() {
             //-------------------------------------------------------------------------------
             if (ImGui::CollapsingHeader("geometry")){
                 
-                ImGui::SliderFloat("fb0_x", &fb0_x_displace, -fb0_x_displace_range, fb0_x_displace_range);
-                ImGui::SliderFloat("fb0_y", &fb0_y_displace, -fb0_y_displace_range, fb0_y_displace_range);
-                ImGui::SliderFloat("fb0_z", &fb0_z_displace,  100.0f-fb0_z_displace_range, 100.0f+fb0_z_displace_range);
-                ImGui::SliderFloat("fb0_rotate", &fb0_rotate, -fb0_rotate_range, fb0_rotate_range);
+                if(ImGui::TreeNode("geo1")) {
+                    
+                    if (ImGui::BeginTabBar("fb0_displace1", tab_bar_flags))
+                    {
+                        if (ImGui::BeginTabItem("geo1"))
+                        {
+                            ImGui::SliderFloat("fb0_x", &fb0_x_displace, -fb0_x_displace_range, fb0_x_displace_range);
+                            ImGui::SliderFloat("fb0_y", &fb0_y_displace, -fb0_y_displace_range, fb0_y_displace_range);
+                            ImGui::SliderFloat("fb0_z", &fb0_z_displace,  100.0f-fb0_z_displace_range, 100.0f+fb0_z_displace_range);
+                            ImGui::SliderFloat("fb0_rotate", &fb0_rotate, -fb0_rotate_range, fb0_rotate_range);
+                            ImGui::EndTabItem();
+                        }
+                        
+                        if (ImGui::BeginTabItem("geo1_texMod"))
+                        {
+                            ImGui::SliderFloat("texmod fb0_x", &tex_fb0_x_displace, -fb0_x_displace_range, fb0_x_displace_range);
+                            ImGui::SliderFloat("texmod fb0_y", &tex_fb0_y_displace,  -fb0_y_displace_range, fb0_y_displace_range);
+                            ImGui::SliderFloat("texmod fb0_z", &tex_fb0_z_displace,  -fb0_y_displace_range, fb0_y_displace_range);
+                            ImGui::SliderFloat("texmod fb0_rotate", &tex_fb0_rotate, -fb0_rotate_range, fb0_rotate_range);
+                            ImGui::EndTabItem();
+                        }
+                        ImGui::EndTabBar();
+                    }
+                    
+                    ImGui::TreePop();
+                }
+                
+                if(ImGui::TreeNode("geo2")) {
+                    ImGui::Text("this is color2 tree WEeeeeeeeeeeee");
+                    ImGui::Text("this is color2 tree WEeeeeeeeeeeee");
+                    ImGui::Text("this is color2 tree WEeeeeeeeeeeee");
+                    ImGui::Text("this is color2 tree WEeeeeeeeeeeee");
+                    ImGui::Text("this is color2 tree WEeeeeeeeeeeee");
+                    ImGui::TreePop();
+                }
             }
         }
+        
         ImGui::Separator();
         
         if (ImGui::CollapsingHeader("fb0 pixelations")){
@@ -331,9 +481,8 @@ void GuiApp::draw() {
         {
             
             
-            framebuffer_clear = ImGui::Button("Clear buffer") ? 1 : 0;
-            
-            ImGui::Checkbox( "eanble keyboard controls", &enableKeys );
+            framebuffer_clear = ImGui::Button("Clear buffer") ? true : false;
+            ndi_clear = ImGui::Button("Clear NDI") ? true : false;
             
             
             //blur
@@ -345,17 +494,31 @@ void GuiApp::draw() {
             
             ImGui::SliderFloat("sharpen_boost", &sharpen_boost, .0f, 1.0f);
             
-            
-            //camscale
-            ImGui::SliderFloat("cam1_scale", &cam1_scale, .0f, 2.0f);
+            if (ImGui::BeginTabBar("cam_scale_tabs", tab_bar_flags))
+            {
+                if (ImGui::BeginTabItem("cam1"))
+                {
+                    //camscale
+                    ImGui::SliderFloat("cam1_scale", &cam1_scale, .0f, 2.0f);
+                    //camflip
+                    ImGui::Checkbox("cam1_hflip", &cam1_hflip_switch);
+                    ImGui::Checkbox("cam1_vflip", &cam1_vflip_switch);
+                    ImGui::EndTabItem();
+                }
+                if (ImGui::BeginTabItem("cam2"))
+                {
+                    ImGui::SliderFloat("cam2_scale", &cam2_scale, .0f, 2.0f);
+                    ImGui::Checkbox("cam2_hflip", &cam2_hflip_switch);
+                    ImGui::Checkbox("cam2_vflip", &cam2_vflip_switch);
+                    ImGui::EndTabItem();
+                }
+                
+                ImGui::EndTabBar();
+            }
             
             ImGui::SliderFloat("ndi_scale", &ndi_scale, -1000.0f, 500.0f);
             
             ImGui::SliderFloat("tittle_scale", &tittle_scale, .0f, 2.0f);
-            //camflip
-            ImGui::Checkbox("cam1_hflip", &cam1_hflip_switch);
-            ImGui::Checkbox("cam1_vflip", &cam1_vflip_switch);
-            
             
             //xskew
             ImGui::SliderFloat("x_skew", &x_skew, -3.14f, 3.14f);
@@ -381,6 +544,8 @@ void GuiApp::draw() {
     ofxImGui::EndWindow(mainSettings);
     
     gui.end();
+    
+    
 }
 
 void GuiApp::newMidiMessage(ofxMidiMessage& msg) {

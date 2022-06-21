@@ -3,6 +3,8 @@
 
 uniform sampler2DRect ndi;
 uniform sampler2DRect cam1;
+uniform sampler2DRect cam2;
+
 uniform sampler2DRect tittle;
 
 uniform sampler2DRect fb0;
@@ -54,23 +56,21 @@ uniform float channel2sat_powmap;
 uniform float channel2bright_powmap;
 
 
-uniform int cam1_hflip_switch;
-uniform int cam1_vflip_switch;
-
 
 uniform float ch1_h_mirror;
 
 //vidmixervariables
 
 uniform float cam1_scale;
+uniform int cam1_hflip_switch;
+uniform int cam1_vflip_switch;
+
+uniform float cam2_scale;
+uniform int cam2_hflip_switch;
+uniform int cam2_vflip_switch;
+
 uniform float tittle_scale;
 
-uniform float width;
-uniform float height;
-
-
-
-varying vec2 texCoordVarying;
 
 
 
@@ -94,6 +94,22 @@ uniform vec3 fb0_hue_x;
 uniform vec3 fb0_rescale;
 uniform vec3 fb0_modswitch;
 uniform float fb0_rotate;
+
+//fb0 tex mod
+uniform vec2 fb0_texmod_logic;
+uniform float tex_fb0blend;
+uniform float tex_fb0lumakeyvalue;
+uniform float tex_fb0lumakeythresh;
+
+uniform vec3 tex_fb0_hsb_x;
+uniform vec3 tex_fb0_hue_x;
+uniform vec3 tex_fb0_rescale;
+uniform float tex_fb0_rotate;
+
+
+
+
+
 
 //fb1
 uniform float fb1lumakeyvalue;
@@ -137,6 +153,13 @@ uniform int cam1_pixel_scale_y;
 uniform float cam1_pixel_mix;
 uniform float cam1_pixel_brightscale;
 
+
+uniform int cam2_pixel_switch;
+uniform int cam2_pixel_scale_x;
+uniform int cam2_pixel_scale_y;
+uniform float cam2_pixel_mix;
+uniform float cam2_pixel_brightscale;
+
 uniform int ndi_pixel_switch;
 uniform int ndi_pixel_scale_x;
 uniform int ndi_pixel_scale_y;
@@ -144,11 +167,23 @@ uniform float ndi_pixel_mix;
 uniform float ndi_pixel_brightscale;
 
 
+uniform float width;
+uniform float height;
+
+
+
+
 
 uniform float ps;
 
 uniform vec2 cam1dimensions;
+uniform vec2 cam2dimensions;
 uniform vec2 textdimensions;
+
+
+
+varying vec2 texCoordVarying;
+
 
 uniform float pp=1.0;
 
@@ -465,6 +500,29 @@ void main()
         
         cam1color=pixelate(cam1_pixel_scale_x,cam1_pixel_scale_y,cam1_coord,cam1,cam1_pixel_mix,cam1color,cam1_pixel_brightscale);
     }
+    //------------------------------------------------ cam2
+    vec2 cam2_coord=texCoordVarying*cam2_scale;
+    
+    if(cam2_hflip_switch==1){
+        if(texCoordVarying.x>width/2){cam2_coord.x=cam2_scale*abs(width-texCoordVarying.x);}
+    }//endifhflip1
+    if(cam2_vflip_switch==1){
+        if(texCoordVarying.y>height/2){cam2_coord.y=cam2_scale*abs(height-texCoordVarying.y);}
+        
+    }//endifvflip1
+    
+    vec4 cam2color=vec4(0.0,0.0,0.0,0.0);
+    
+    if(texCoordVarying.x*cam2_scale<cam2dimensions.x){
+        if(texCoordVarying.y*cam2_scale<cam2dimensions.y){
+            cam2color=texture2DRect(cam2,vec2(cam2_coord.x,cam2_coord.y));
+        }
+    }
+    
+    if(cam2_pixel_switch==1){
+        
+        cam2color=pixelate(cam2_pixel_scale_x,cam2_pixel_scale_y,cam2_coord,cam2,cam2_pixel_mix,cam2color,cam2_pixel_brightscale);
+    }
     
     
 
@@ -491,31 +549,42 @@ void main()
         channel1_color=cam1color;
         
     }//endifch1_1
-    
     if(channel1==2){
-        channel1_color=ndi_color;
-        
-    }//endifch1_2
+           channel1_color=cam2color;
+           
+       }//endifch1_2
     
     if(channel1==3){
-        channel1_color=tittle_color;
+        channel1_color=ndi_color;
         
     }//endifch1_3
+    
+    if(channel1==4){
+        channel1_color=tittle_color;
+        
+    }//endifch1_4
+    
+    
     
     if(channel2==1){
            channel2_color=cam1color;
            
        }//endifch2_1
        
-       if(channel2==2){
+    if(channel2==2){
+              channel2_color=cam2color;
+              
+          }//endifch2_2
+    
+       if(channel2==3){
            channel2_color=ndi_color;
            
-       }//endifch2_2
+       }//endifch2_3
        
-       if(channel2==3){
+       if(channel2==4){
            channel2_color=tittle_color;
            
-       }//endifch2_3
+       }//endifch2_4
     
    
 
@@ -548,17 +617,20 @@ void main()
     vec2 center=vec2(width/2,height/2);
     
     
-    //try some flips
-    
+    //fb0 rescales and transforms
+    float fb0_tex_mod=fb0_texmod_logic.x*ch1_hsbstrip.z+fb0_texmod_logic.y*ch2_hsbstrip.z;
+
     
     vec2 fb0_coord=vec2(texCoordVarying.x-center.x,texCoordVarying.y-center.y);
-    fb0_coord=fb0_coord* fb0_rescale.z;
-    fb0_coord.xy=fb0_rescale.xy+fb0_coord.xy;
-    fb0_coord.x=fb0_coord.x+center.x;
-    fb0_coord.y=fb0_coord.y+center.y;
     
-    //fb0_coord=1024-fb0_coord;
-    fb0_coord=rotate(fb0_coord,fb0_rotate);
+    fb0_coord=fb0_coord*(fb0_rescale.z+tex_fb0_rescale.z*fb0_tex_mod*.25);
+    fb0_coord.xy=fb0_rescale.xy+fb0_coord.xy;
+    fb0_coord.x=tex_fb0_rescale.x*(fb0_tex_mod)+fb0_coord.x+center.x;
+    fb0_coord.y=tex_fb0_rescale.y*(fb0_tex_mod)+fb0_coord.y+center.y;
+    
+    
+    fb0_coord=rotate(fb0_coord,fb0_rotate+tex_fb0_rotate*fb0_tex_mod);
+    
     
     if(fb0_toroid_switch==1){
         fb0_coord=wrapCoord(fb0_coord);
@@ -636,11 +708,7 @@ void main()
         fb1_color=pixelate( fb1_pixel_scale_x, fb1_pixel_scale_y,fb1_coord,fb1,fb1_pixel_mix,fb1_color,fb1_pixel_brightscale);
     }
     
-    //cam1color=pixelate(cam1_pixel_scale_x,cam1_pixel_scale_y,cam1_coord,cam1,cam1_pixel_mix,cam1color,cam1_pixel_brightscale)
-    
-    
-    
-    
+   
     
     
     
@@ -689,8 +757,8 @@ void main()
     
   
     fb0color_hsb=fb_hsbop(fb0color_hsb,
-                          fb0_hsb_x,
-                          fb0_hue_x,fb0_modswitch,0);
+                          fb0_hsb_x+tex_fb0_hsb_x*fb0_tex_mod,
+                          fb0_hue_x+tex_fb0_hue_x*fb0_tex_mod,fb0_modswitch,0);
     
     fb1color_hsb=fb_hsbop(fb1color_hsb,
                           fb1_hsb_x,
@@ -716,12 +784,12 @@ void main()
      vec3 mixout_colorhsb=vec3(rgb2hsv(vec3(mixout_color.x,mixout_color.y,mixout_color.z)));
 
      //fb0
-     mixout_color=mix_rgb(mixout_color,fb0_color,fb0mix,fb0blend,
-                          fb0lumakeyvalue,
-                          fb0lumakeythresh,
-                          mixout_colorhsb.z);
-     
-     mixout_colorhsb=vec3(rgb2hsv(vec3(mixout_color.x,mixout_color.y,mixout_color.z)));
+     mixout_color=mix_rgb(mixout_color,fb0_color,fb0mix,fb0blend+tex_fb0blend*fb0_tex_mod,
+                            fb0lumakeyvalue+tex_fb0lumakeyvalue*fb0_tex_mod,
+                            fb0lumakeythresh+tex_fb0lumakeythresh*fb0_tex_mod,
+                            mixout_colorhsb.z);
+       
+       mixout_colorhsb=vec3(rgb2hsv(vec3(mixout_color.x,mixout_color.y,mixout_color.z)));
     
      //fb1
      mixout_color=mix_rgb(mixout_color,fb1_color,fb1mix,fb1blend,

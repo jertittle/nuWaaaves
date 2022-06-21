@@ -46,11 +46,6 @@ public:
     
     ofFbo ndi_fbo;
     
-    void NDI_sender_setup(string app_name);
-    void NDI_sender_update();
-    
-    ofxNDISender sender_;
-    ofxNDISendVideo ndi_send_video_;
     
     //-----------guibiz
     shared_ptr<GuiApp> gui;
@@ -70,10 +65,13 @@ public:
     ofFbo fbo_feedback;
     ofFbo fbo_blur;
     
+    ofPixels fbo_pixels;
+    
     
     
     ofVideoGrabber cam1;
-    
+    ofVideoGrabber cam2;
+
     void tittle_update();
        
     float widthOffset(string strr);//auto center alignment
@@ -82,4 +80,12 @@ public:
     float x_tittle, y_tittle;
     
     
+//private:
+    
+//    void NDI_sender_setup(string app_name);
+//    void NDI_sender_update();
+//
+//    ofxNDISender sender_;
+//    ofxNDISendVideo ndi_send_video_;
+//
 };

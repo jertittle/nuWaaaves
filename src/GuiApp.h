@@ -9,6 +9,7 @@
 #include "ofMain.h"
 #include "ofxImGui.h"
 #include "ofxMidi.h"
+#include "MyTheme.h"
 
 
 class GuiApp : public ofBaseApp, public ofxMidiListener {
@@ -27,7 +28,9 @@ public:
     void newMidiMessage(ofxMidiMessage& eventArgs);
     void getMidi();//midi bizzzzz
     
-float addMidi(int,float);
+    float addMidi(int,float);
+    
+    bool hide_mouse = false;
    
     
     float cc[128] = {0};//dummys
@@ -109,6 +112,24 @@ float addMidi(int,float);
     float fb0_z_displace=100;
     float fb0_rotate=0;
     
+    //fb0 texmods
+       int fb0_texmod_select=1;
+       bool fb0_tex_mod=false;
+       
+       float tex_fb0_key_value=0.0;
+       float tex_fb0_key_threshold=0.0;
+       float tex_fb0_mix=.0;
+       float tex_fb0_hue=0;
+       float tex_fb0_saturation=0.0;
+       float tex_fb0_bright=0.0;
+       float tex_fb0_huex_mod=0;
+       float tex_fb0_huex_offset=0;
+       float tex_fb0_huex_lfo=0.0;
+       float tex_fb0_x_displace=0.0;
+       float tex_fb0_y_displace=0.0;
+       float tex_fb0_z_displace=0;
+       float tex_fb0_rotate=0;
+    
     //framebuffer 1 settings
     
     float fb1_mix=0;
@@ -149,6 +170,12 @@ float addMidi(int,float);
     float cam1_pixel_mix=1.0;
     float cam1_pixel_brightscale=0;
     
+    bool cam2_pixel_switch=0;
+    int cam2_pixel_scale_x=64;
+    int cam2_pixel_scale_y=64;
+    float cam2_pixel_mix=1.0;
+    float cam2_pixel_brightscale=0;
+    
     bool fb0_pixel_switch=0;
     int fb0_pixel_scale_x=64;
     int fb0_pixel_scale_y=64;
@@ -169,23 +196,33 @@ float addMidi(int,float);
     
     
     //global settings
-    bool framebuffer_clear = 0;
+    bool framebuffer_clear = false;
+    bool ndi_clear = false;
+    
     float blur_amount=0;
     float blur_radius=1.0;
     float sharpen_amount=0;
     float sharpen_radius=1.0;//=1.0;
     float sharpen_boost=0;//=0.0;
+    
     float y_skew=0;
     float x_skew=0;
+    
     bool cam1_vflip_switch=0;
     bool cam1_hflip_switch=0;
     float cam1_scale=1.0;
+    
+    bool cam2_vflip_switch=0;
+    bool cam2_hflip_switch=0;
+    float cam2_scale=1.0;
+    
     float ndi_scale=0;//=0;
     
     float tittle_scale=1;
     
     //----------------- keyboard vars
     bool enableKeys = 0;
+    
     float aa=0.0;
     float ss=0.0;
     float dd=0.0;

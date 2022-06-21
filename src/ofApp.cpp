@@ -3,7 +3,24 @@
  }
  
  too-Doo list:
+    
+    texmod fb1
+        texmod pixels
  
+    
+    texmod math is limited to size of buffer? or input?
+ 
+    midi
+ 
+    obj? lemao
+ 
+ 
+    Something with the delay lines is wrong?
+    cpu starts taking on massive load after a time.
+    this could be related to the NDIoutput and the pixel info
+    maybe rework the array into arraylist
+ 
+    
  
  }
  
@@ -75,17 +92,19 @@ void ofApp::setup(){
     
     ofSetVerticalSync(true);
     ofBackground(0);
-    //ofSetLogLevel(OF_LOG_VERBOSE);
-    ofHideCursor();
+  //  ofSetLogLevel(OF_LOG_VERBOSE);
+    
+    
     
     
     
     // string reciever_name="Cellular_automata";
-    string reciever_name="";
+    //string reciever_name="Scan Converter";
+    string reciever_name="Test Patterns";
     //string reciever_name="testing";
     //ndi setup
     NDI_reciever_setup(reciever_name);
-    NDI_sender_setup("nu_Waaves");
+   // NDI_sender_setup("nu_Waaves");
     /**shaderobiz***/
     
     /**shaderobiz***/
@@ -131,9 +150,10 @@ void ofApp::setup(){
     ofClear(0,0,0,255);
     fbo_blur.end();
     
-    ndi_fbo.begin();
-    ofClear(0,0,0,255);
-    ndi_fbo.end();
+    //uncomment this if you don't want NDI blue screen
+    //ndi_fbo.begin();
+    //ofClear(0,0,0,255);
+    //ndi_fbo.end();
     
     
     //allocate and clear the variable delay final draw buffers
@@ -154,7 +174,13 @@ void ofApp::setup(){
     cam1.listDevices();
     cam1.setVerbose(true);
     cam1.setDeviceID(0);
-    cam1.initGrabber(1280, 720);
+    cam1.setup(1280, 720);
+    
+    
+   
+    cam2.setDeviceID(1);
+    cam2.setup(1280, 720);
+    
     
     //-------------------TITTLER
     //old OF default is 96 - but this results in fonts looking larger than in other programs.
@@ -174,22 +200,26 @@ void ofApp::setup(){
     franklinBook14A.setLineHeight(18.0f);
     franklinBook14A.setLetterSpacing(1.037);
     
-    x_tittle = ofGetWidth();
-    y_tittle = ofGetHeight();
+    x_tittle = ofGetWidth()/2;
+    y_tittle = ofGetHeight()/2;
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
     
     cam1.update();
+    cam2.update();
     
     NDI_reciever_update();
-    NDI_sender_update();
-    
-    
     
     tittle_update();
     
+    //NDI_sender_update();
+    
+    
+    
+   
+    //---------------------------------------clear FB's
     if(gui->framebuffer_clear==true){
         
         for(int i=0;i<fbob;i++){
@@ -204,13 +234,25 @@ void ofApp::update(){
         ofClear(0,0,0,255);
         fbo_draw.end();
         
-        ndi_fbo.begin();//this is kinda extra, just tired of drag artifacts when scaling.
-        ofClear(0,0,0,255);
-        ndi_fbo.end();
+        
         
         cout<<"lalalal"<<endl;
         
-        gui->framebuffer_clear = 0;//reset momentary state
+        gui->framebuffer_clear = false;//reset momentary state
+        
+    }
+    //---------------------------------------clear ndi
+    if(gui->ndi_clear) {
+        ndi_fbo.begin();//this is kinda extra, just tired of drag artifacts when scaling.
+        ofClear(0,0,0,255);
+        ndi_fbo.end();
+        gui->ndi_clear = false;//reset momentary state
+    }
+    //----------------hide mouse
+    if( gui->hide_mouse ) {
+        ofHideCursor();
+    } else {
+        ofShowCursor();
     }
     
 }
@@ -236,10 +278,13 @@ void ofApp::draw(){
     
     fbo_feedback.draw(0,0);
     
-    
-    
-    shader_mixer.setUniformTexture("ndi",ndi_fbo.getTexture(),1); shader_mixer.setUniformTexture("cam1",cam1.getTexture(),2);
-    shader_mixer.setUniformTexture("tittle", fbo_tittle.getTexture(),3);//so this last number in the call here is unrelated to the location in the Gui drop menu//
+      shader_mixer.setUniformTexture("ndi",ndi_fbo.getTexture(),1);
+    shader_mixer.setUniformTexture("cam1",cam1.getTexture(),2);
+    shader_mixer.setUniformTexture("cam2",cam2.getTexture(),3);
+  
+    shader_mixer.setUniformTexture("tittle", fbo_tittle.getTexture(),4);//so this last number in the call here is unrelated to the location in the Gui drop menu//
+     shader_mixer.setUniformTexture("fb0",pastFrames[(abs(framedelayoffset-fbob-gui->fb0_delay_amount)-1)%fbob].getTexture(),5);
+    shader_mixer.setUniformTexture("fb1",pastFrames[(abs(framedelayoffset-fbob-gui->fb1_delay_amount)-1)%fbob].getTexture(),6);
     
     
     //global things
@@ -247,13 +292,19 @@ void ofApp::draw(){
     shader_mixer.setUniform1f("height", ofGetHeight());
     
     shader_mixer.setUniform2f("cam1dimensions",ofVec2f(cam1.getWidth(),cam1.getHeight()));
+    shader_mixer.setUniform2f("cam2dimensions",ofVec2f(cam2.getWidth(),cam2.getHeight()));
+    
     shader_mixer.setUniform2f("textdimensions",ofVec2f(fbo_tittle.getWidth(),fbo_tittle.getHeight()));
     
     shader_mixer.setUniform1i("cam1_hflip_switch", gui->cam1_hflip_switch);
     shader_mixer.setUniform1i("cam1_vflip_switch", gui->cam1_vflip_switch);
+    shader_mixer.setUniform1f("cam1_scale", gui->cam1_scale);//this is also buffer scale? ------- this note is in reference to math in fb txmod I thinnk
+    
+    shader_mixer.setUniform1i("cam2_hflip_switch", gui->cam2_hflip_switch);
+    shader_mixer.setUniform1i("cam2_vflip_switch", gui->cam2_vflip_switch);
+    shader_mixer.setUniform1f("cam2_scale", gui->cam2_scale);
     
     
-    shader_mixer.setUniform1f("cam1_scale", gui->cam1_scale);//this is also buffer scale?
     shader_mixer.setUniform1f("tittle_scale", gui->tittle_scale);
     //send variables from gui
     
@@ -319,7 +370,7 @@ void ofApp::draw(){
     shader_mixer.setUniform1f("fb0blend", gui->addMidi(0, gui->fb0_mix));
     shader_mixer.setUniform1f("fb0lumakeyvalue", gui->fb0_key_value);
     shader_mixer.setUniform1f("fb0lumakeythresh", gui->fb0_key_threshold);
-    shader_mixer.setUniformTexture("fb0",pastFrames[(abs(framedelayoffset-fbob-gui->fb0_delay_amount)-1)%fbob].getTexture(),4);
+   
     shader_mixer.setUniform1i("fb0_hflip_switch", gui->fb0_hflip_switch);
     shader_mixer.setUniform1i("fb0_vflip_switch", gui->fb0_vflip_switch);
     shader_mixer.setUniform1i("fb0_toroid_switch", gui->fb0_toroid_switch);
@@ -331,13 +382,39 @@ void ofApp::draw(){
     
     shader_mixer.setUniform1f("fb0_rotate",(gui->fb0_rotate)/100);
     
+    
+    //fb0 tex_mod
+    shader_mixer.setUniform1f("tex_fb0lumakeyvalue", gui->tex_fb0_key_value);
+    shader_mixer.setUniform1f("tex_fb0lumakeythresh", gui->tex_fb0_key_threshold);
+    shader_mixer.setUniform1f("tex_fb0blend", gui->tex_fb0_mix);
+    
+    shader_mixer.setUniform3f("tex_fb0_hsb_x",ofVec3f(gui->tex_fb0_hue,gui->tex_fb0_saturation,gui->tex_fb0_bright));
+    
+    shader_mixer.setUniform3f("tex_fb0_hue_x",ofVec3f(gui->tex_fb0_huex_mod,gui->tex_fb0_huex_offset,gui->tex_fb0_huex_lfo));
+    
+    
+    shader_mixer.setUniform3f("tex_fb0_rescale",ofVec3f(gui->tex_fb0_x_displace, gui->tex_fb0_y_displace, gui->tex_fb0_z_displace/100.0f));
+    
+    shader_mixer.setUniform1f("tex_fb0_rotate",(gui->tex_fb0_rotate));
+    
+    ofVec2f fb0_texmod_logic;
+    if(gui->fb0_texmod_select==1){
+        fb0_texmod_logic.set(1,0);
+    }
+    
+    if(gui->fb0_texmod_select==2){
+        fb0_texmod_logic.set(0,1);
+    }
+    
+    shader_mixer.setUniform2f("fb0_texmod_logic",fb0_texmod_logic);
+    
+    
     //fb1
     
     
     shader_mixer.setUniform1f("fb1blend", gui->fb1_mix);
     shader_mixer.setUniform1f("fb1lumakeyvalue", gui->fb1_key_value);
     shader_mixer.setUniform1f("fb1lumakeythresh", gui->fb1_key_threshold);
-    shader_mixer.setUniformTexture("fb1",pastFrames[(abs(framedelayoffset-fbob-gui->fb1_delay_amount)-1)%fbob].getTexture(),5);
     
     shader_mixer.setUniform1i("fb1_hflip_switch", gui->fb1_hflip_switch);
     shader_mixer.setUniform1i("fb1_vflip_switch", gui->fb1_vflip_switch);
@@ -360,6 +437,14 @@ void ofApp::draw(){
     shader_mixer.setUniform1i("cam1_pixel_scale_y",gui->cam1_pixel_scale_y);
     shader_mixer.setUniform1f("cam1_pixel_mix",gui->cam1_pixel_mix);
     shader_mixer.setUniform1f("cam1_pixel_brightscale",gui->cam1_pixel_brightscale);
+    
+    
+    //cam2
+    shader_mixer.setUniform1i("cam2_pixel_switch",gui->cam2_pixel_switch);
+    shader_mixer.setUniform1i("cam2_pixel_scale_x",gui->cam2_pixel_scale_x);
+    shader_mixer.setUniform1i("cam2_pixel_scale_y",gui->cam2_pixel_scale_y);
+    shader_mixer.setUniform1f("cam2_pixel_mix",gui->cam2_pixel_mix);
+    shader_mixer.setUniform1f("cam2_pixel_brightscale",gui->cam2_pixel_brightscale);
     
     
     
@@ -537,6 +622,7 @@ void ofApp:: tittle_update() {
 
 //_____----_-_-_-______---__---_--_----____--_-__-_-
 void ofApp::NDI_reciever_setup(string reciever_name){
+    
     auto findSource = [](const string &name_or_url) {
         auto sources = ofxNDI::listSources();
         if(name_or_url == "") {
@@ -585,23 +671,24 @@ void ofApp::NDI_reciever_update(){
 }
 
 //------------------------------------------------
-
-void ofApp::NDI_sender_setup(string app_name){
-    
-    if(sender_.setup(app_name)) {
-        ndi_send_video_.setup(sender_);
-        ndi_send_video_.setAsync(true);
-    }
-    
-}
-
-//----
-
-void ofApp:: NDI_sender_update(){
-    ofPixels fbo_pixels;
-    fbo_draw.readToPixels(fbo_pixels);
-    ndi_send_video_.send(fbo_pixels);//getPixels());
-}
+//
+//void ofApp::NDI_sender_setup(string app_name){
+//
+//    if(sender_.setup(app_name)) {
+//        ndi_send_video_.setup(sender_);
+//        ndi_send_video_.setAsync(true);
+//    }
+//
+//}
+//
+////----
+//
+//void ofApp:: NDI_sender_update(){
+//    if(sender_.isSetup()){
+//    fbo_draw.readToPixels(fbo_pixels);
+//    ndi_send_video_.send(fbo_pixels);//getPixels());
+//    }
+//}
 
 
 //--------------------------------------------------------------

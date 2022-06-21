@@ -1,3 +1,4 @@
 ofxImGui
 ofxMidi
 ofxNDI
+ofxWaaave

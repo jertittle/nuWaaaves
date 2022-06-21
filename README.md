@@ -45,8 +45,22 @@
         - midi is moving to the GuiApp.
                 This is part of folding all the modulation into one container. lfo's next.
  
-    Overall mindset long term will be modular, generative, and live/play.
+   .
 }
+//// ****  Update 6-21-22 *****
+
+Not gonna lie, Can't totally put together what all has changed with this update but here's some off the top if the dome.
+fb0 has texmod
+cam2 has been added.
+        NDI is a mess lol, about to dive into that. 
+        Testing alt NDI library today, because sending through current library is possible 
+        it just has too much impact on the CPU to justify. 
+GUI has some tests for reorganizing in anticipation of the next official VW update.
+some midi framework in place.
+the debug menu has some features now(hidemouse,randomizetheme,enablekeyboard)
+global now has a button for clearing the NDI buffer(it has no background redraw)
+
+overall messy af butttt probably a good snapshot to work from to learn.
 
 // ****  Update 6-8-22 ***
 
